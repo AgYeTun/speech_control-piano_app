@@ -10,6 +10,23 @@
     <link rel="stylesheet" href="./css/slideshow.css" />
   </head>
   <body>
+    <!-- photo upload -->
+    <input type="file" id="photoUpload" class="d-none" multiple>
+
+    <div id="uploaderUI" class=" m-5 p-5 border border-dark text-center">
+      <h1 class=" mb-0">Click to Upload</h1>
+    </div>
+
+    <!-- display photo -->
+    <div class="border border-dark m-5 p-5">
+      <div id="photos" class=" d-flex flex-wrap gap-2 justify-content-center mb-3"></div>
+      <div class=" text-center">
+        <button id="createSlideShow" class=" btn btn-dark">Create Slide Show</button>
+      </div>
+    </div>
+
+    <!-- carousel -->
+    <div id="output" class="p-5"></div>
 
     <!-- JS -->
     <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
