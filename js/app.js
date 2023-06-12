@@ -1,75 +1,123 @@
-const photoUpload = document.querySelector("#photoUpload");
-const uploaderUI = document.querySelector("#uploaderUI");
-const photos = document.querySelector("#photos");
-const createSlideShow = document.querySelector("#createSlideShow");
+// variables
+
+const fonts = [
+  "Arial",
+  "Baskerville",
+  "Bradley Hand",
+  "Chalkboard",
+  "Georgia",
+  "Impact",
+  "Monaco",
+  "SignPainter",
+  "Verdana",
+];
+
+// selectors
+
 const output = document.querySelector("#output");
+const text = document.querySelector("#text");
+const count = document.querySelector("#count");
+const color = document.querySelector("#color");
+const fontSize = document.querySelector("#fontSize");
+const fontSizeLabel = document.querySelector("#fontSizeLabel");
+const fontFamily = document.querySelector("#fontFamily");
+const controlPanal = document.querySelector("#controlPanal");
+const toggleControlPanal = document.querySelector("#toggleControlPanal");
+// speech webapi
+const synth = window.speechSynthesis;
+const textToSpeech = document.querySelector("#textToSpeech");
+const speechToText = document.querySelector("#speechToText");
 
-// click => input file
-uploaderUI.addEventListener("click", () => {
-  photoUpload.click();
-});
+const listen = () => {
+  const recognition = new webkitSpeechRecognition();
 
-// create carousel function
-const createCarousel = (photoList) => {
-  const id = "carousel" + Date.now();
-  const carousel = document.createElement("div");
-  carousel.id = id
-  carousel.className = "carousel slide";
+  // Set the language and start recognition
+  recognition.lang = "en-US";
+  recognition.start();
 
-  let slides = "";
-  let indicators = "";
-  photoList.forEach((photo, index) => {
-    slides += `
-      <div class="carousel-item ${index === 0 && "active"}">
-        <img src="${photo}" class=" d-block w-100" alt="...">
+  recognition.addEventListener("start", () => {
+    speechToText.classList.add("active");
+    speechToText.innerHTML = `
+      <div class="spinner-border spinner-border-sm text-white mb-0" role="status">
+        <span class="visually-hidden">Loading...</span>
       </div>
     `;
-    indicators += `
-      <button type="button" ${index === 0 && 'class="active"'} data-bs-target="#${id}" data-bs-slide-to="${index}" aria-label="Slide ${
-      index + 1
-    }"></button>
+  });
+  recognition.addEventListener("end", () => {
+    speechToText.classList.remove("active");
+    speechToText.innerHTML = `
+      <i class="bi bi-mic"></i>
     `;
   });
 
-  carousel.innerHTML = `
-  <div class="carousel-indicators">
-    ${indicators}
-  </div>
-  <div class="carousel-inner">
-    ${slides}
-  </div>
-  <button class="carousel-control-prev" type="button" data-bs-target="#${id}" data-bs-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Previous</span>
-  </button>
-  <button class="carousel-control-next" type="button" data-bs-target="#${id}" data-bs-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Next</span>
-  </button>
-  `;
-  output.append(carousel)
+  // When a speech result is returned
+  recognition.onresult = (event) => {
+    // Get the transcript of the spoken words
+    // console.log(event.results);
+    const transcript = event.results[0][0].transcript;
+
+    text.value += " " + transcript;
+
+    // update output
+    output.innerText = text.value;
+    count.innerText = text.value.length;
+  };
 };
 
-// upload photos
-photoUpload.addEventListener("change", (event) => {
-  console.log([...event.target.files]);
+const speak = (text) => {
+  const utterThis = new SpeechSynthesisUtterance();
+  utterThis.text = text;
+  utterThis.volume = 1;
+  utterThis.rate = 1;
+  utterThis.pitch = 1;
+  utterThis.voice = synth.getVoices()[0];
 
-  [...event.target.files].forEach((file) => {
-    const img = new Image(100, 100);
-
-    const reader = new FileReader();
-    reader.addEventListener("load", (event) => {
-      // console.log(event.target);
-      img.src = event.target.result;
-      img.classList.add("photo");
-      photos.append(img);
-    });
-    reader.readAsDataURL(file);
+  utterThis.addEventListener("start", () => {
+    textToSpeech.classList.add("active");
   });
+  utterThis.addEventListener("end", () => {
+    textToSpeech.classList.remove("active");
+  });
+
+  synth.speak(utterThis);
+};
+
+// --- //
+fonts.forEach((font) => {
+  fontFamily.append(new Option(font, font));
 });
 
-// create carousel
-createSlideShow.addEventListener("click", () => {
-  const allPhotos = [...document.querySelectorAll(".photo")];
-  createCarousel(allPhotos.map((el) => el.src));
+// actions
+
+text.addEventListener("keyup", (e) => {
+  output.innerText = e.target.value;
+  count.innerText = e.target.value.length;
+});
+
+color.addEventListener("change", (e) => {
+  output.style.color = e.target.value;
+});
+
+fontSize.addEventListener("change", (e) => {
+  output.style.fontSize = e.target.value + "px";
+  fontSizeLabel.innerText = e.target.value + "px";
+});
+
+fontFamily.addEventListener("change", (e) => {
+  output.style.fontFamily = e.target.value;
+});
+
+toggleControlPanal.addEventListener("click", (e) => {
+  controlPanal.classList.toggle("visually-hidden");
+  controlPanal.classList.contains("visually-hidden")
+    ? (toggleControlPanal.innerText = "<")
+    : (toggleControlPanal.innerText = ">");
+});
+
+textToSpeech.addEventListener("click", () => {
+  speak(text.value);
+});
+
+speechToText.addEventListener("click", () => {
+  listen();
 });
